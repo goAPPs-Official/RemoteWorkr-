@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Publish Task | Remote.Workr™</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        :root {
+            --gold: #d4af37;
+            --gold-glow: #f9e29c;
+            --bg-black: #0d0d0d;
+            --card-bg: #1a1a1a;
+            --accent-green: #00ff88;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: #e0e0e0;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-small {
+            width: 60px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+
+        /* --- Task Selection Grid --- */
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px);
+        }
+
+        .category-card.active {
+            background: linear-gradient(145deg, #222, #111);
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .category-card i {
+            display: block;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        /* --- Form Styling --- */
+        .publish-form {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: var(--gold);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            background: #000;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        input:focus { border-color: var(--gold); outline: none; }
+
+        .cost-estimator {
+            background: #111;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-green);
+            margin-top: 20px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, #d4af37, #f9e29c);
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #000;
+            text-transform: uppercase;
+            margin-top: 25px;
+        }
+
+        /* --- Success Overlay --- */
+        #successModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container animate__animated animate__fadeIn">
+        <div class="header">
+            <img src="7b817902-3568-403e-b819-ce1f86152018.jpeg" alt="Logo" class="logo-small">
+            <h1>Task Publisher</h1>
+            <p style="color: #888;">Drive engagement to your digital assets</p>
+        </div>
+
+        <label>Select Engagement Category</label>
+        <div class="task-grid">
+            <div class="category-card" onclick="setCategory(this, 'Social Media', 50)">
+                <i>📱</i>
+                <div>Social Media</div>
+            </div>
+            <div class="category-card" onclick="setCategory(this, 'Website Traffic', 75)">
+                <i>🌐</i>
+                <div>Site Visit</div>
+            </div>
+            <div class="category-card" onclick="setCategory(this, 'App Review', 150)">
+                <i>⭐</i>
+                <div>App Review</div>
+            </div>
+            <div class="category-card" onclick="setCategory(this, 'Custom Task', 100)">
+                <i>🛠️</i>
+                <div>Custom</div>
+            </div>
+        </div>
+
+        <form class="publish-form" id="taskForm">
+            <div class="form-group">
+                <label>Task Title</label>
+                <input type="text" id="taskTitle" placeholder="e.g. Follow my Twitter & Retweet" required>
+            </div>
+
+            <div class="form-group">
+                <label>Target URL / Link</label>
+                <input type="url" id="taskLink" placeholder="https://..." required>
+            </div>
+
+            <div class="form-group">
+                <label>Number of Engagements Required</label>
+                <input type="number" id="taskQty" min="10" value="50" oninput="calculateTotal()">
+            </div>
+
+            <div class="form-group">
+                <label>Detailed Instructions for Workers</label>
+                <textarea id="taskDesc" rows="4" placeholder="Step 1: Click link... Step 2: Screenshot proof..."></textarea>
+            </div>
+
+            <div class="cost-estimator">
+                <div style="font-size: 0.8rem; color: #888;">Estimated Campaign Cost:</div>
+                <div style="font-size: 1.5rem; color: var(--accent-green); font-weight: bold;">
+                    <span id="totalCost">0</span> goCOINS
+                </div>
+            </div>
+
+            <input type="hidden" id="selectedCat" value="">
+            <button type="submit" class="submit-btn">Publish Task to Network</button>
+        </form>
+    </div>
+
+    <div id="successModal">
+        <div class="animate__animated animate__zoomIn">
+            <h1 style="color: var(--accent-green);">TASK BROADCASTING...</h1>
+            <p>Syncing with Remote.Workr™ Global Network</p>
+            <div style="font-size: 3rem; margin: 20px;">📡</div>
+            <p id="countdown">Redirecting in 5s...</p>
+        </div>
+    </div>
+
+    <script>
+        let baseRate = 0;
+
+        function setCategory(el, name, rate) {
+            document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('selectedCat').value = name;
+            baseRate = rate;
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            const qty = document.getElementById('taskQty').value;
+            const total = qty * baseRate;
+            document.getElementById('totalCost').innerText = total.toLocaleString();
+        }
+
+        document.getElementById('taskForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if(!baseRate) {
+                alert("Please select an engagement category.");
+                return;
+            }
+
+            // --- Haptic Feedback ---
+            if (window.navigator.vibrate) {
+                window.navigator.vibrate([200, 100, 200]);
+            }
+
+            // --- Voice Response ---
+            const speech = new SpeechSynthesisUtterance();
+            speech.text = "Task details captured. Broadcasting to the global worker network now.";
+            speech.pitch = 0.9;
+            window.speechSynthesis.speak(speech);
+
+            // --- Show Modal & Redirect ---
+            document.getElementById('successModal').style.display = 'flex';
+            let timer = 5;
+            const interval = setInterval(() => {
+                timer--;
+                document.getElementById('countdown').innerText = `Redirecting in ${timer}s...`;
+                if(timer <= 0) {
+                    clearInterval(interval);
+                    const msg = `*NEW TASK SUBMISSION: REMOTE.WORKR™*\n\n` +
+                                `*Category:* ${document.getElementById('selectedCat').value}\n` +
+                                `*Title:* ${document.getElementById('taskTitle').value}\n` +
+                                `*Link:* ${document.getElementById('taskLink').value}\n` +
+                                `*Budget:* ${document.getElementById('totalCost').innerText} goCOINS\n\n` +
+                                `_Please approve this task for the dashboard._`;
+                    
+                    window.location.href = `https://wa.me/2348157505037?text=${encodeURIComponent(msg)}`;
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
