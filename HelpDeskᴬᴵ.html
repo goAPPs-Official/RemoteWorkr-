@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BotForge — Build Your Business AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════ TOKENS & BASE ═══════════════ */
+    :root {
+      --bg: #050c14;
+      --card: rgba(255, 255, 255, 0.04);
+      --card-border: rgba(255, 255, 255, 0.09);
+      --green: #00e87a;
+      --cyan: #00d4ff;
+      --purple: #a855f7;
+      --white: #f0f8ff;
+      --white-60: rgba(240, 248, 255, 0.6);
+      --white-30: rgba(240, 248, 255, 0.3);
+      --radius: 16px;
+      --t: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Manrope', sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND MESH ── */
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+    .mesh { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .mesh-blob { position: absolute; border-radius: 50%; filter: blur(100px); animation: float 12s ease-in-out infinite alternate; }
+    .m1 { width: 600px; height: 600px; background: rgba(0, 232, 122, 0.07); top: -10%; left: -15%; }
+    .m2 { width: 500px; height: 500px; background: rgba(0, 212, 255, 0.05); top: 30%; right: -10%; animation-delay: -6s; }
+    @keyframes float { 100% { transform: translate(40px, 60px) scale(1.08); } }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 3rem; background: rgba(5, 12, 20, 0.88);
+      backdrop-filter: blur(20px); border-bottom: 1px solid var(--card-border);
+      transition: padding 0.3s ease;
+    }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; background: linear-gradient(90deg, var(--green), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; align-items: center; }
+    .nav-links a { color: var(--white-60); text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: color 0.3s; }
+    .nav-links a:hover { color: var(--white); }
+    .btn-nav { padding: 0.6rem 1.4rem; border-radius: 99px; background: var(--card); border: 1px solid var(--card-border); color: var(--white); font-weight: 700; cursor: pointer; transition: all 0.3s; font-size: 0.85rem; white-space: nowrap; }
+    .btn-nav:hover { background: rgba(0, 232, 122, 0.1); border-color: var(--green); color: var(--green); }
+
+    /* ── LAYOUT UTILS ── */
+    .section { position: relative; z-index: 10; padding: 6rem 2rem; max-width: 1300px; margin: 0 auto; }
+    .sec-title { font-family: 'Syne', sans-serif; font-size: clamp(2rem, 4vw, 2.6rem); font-weight: 800; margin-bottom: 0.5rem; line-height: 1.2; }
+    .sec-sub { color: var(--white-60); margin-bottom: 3rem; font-size: clamp(0.95rem, 2vw, 1.05rem); max-width: 600px; }
+    .highlight { color: var(--green); }
+
+    /* ── HERO ── */
+    .hero { text-align: center; padding-top: 11rem; padding-bottom: 4rem; }
+    .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.2rem, 5vw, 4.5rem); font-weight: 800; line-height: 1.15; margin-bottom: 1.5rem; letter-spacing: -0.01em; }
+    .hero p { color: var(--white-60); font-size: clamp(1rem, 2vw, 1.15rem); max-width: 650px; margin: 0 auto 2.5rem; line-height: 1.6; }
+    .btn-primary { padding: 16px 36px; border-radius: 14px; background: linear-gradient(135deg, var(--green), #00b85f); color: #050c14; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; border: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 0 30px rgba(0, 232, 122, 0.25); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 0 50px rgba(0, 232, 122, 0.45); }
+
+    /* ── LOGO CAROUSEL ── */
+    .carousel-wrap { position: relative; z-index: 10; border-top: 1px solid var(--card-border); border-bottom: 1px solid var(--card-border); background: rgba(255,255,255,0.01); padding: 2rem 0; overflow: hidden; }
+    .carousel-wrap::before, .carousel-wrap::after { content:''; position:absolute; top:0; bottom:0; width:150px; z-index:2; pointer-events: none; }
+    .carousel-wrap::before { left:0; background:linear-gradient(90deg,var(--bg),transparent); }
+    .carousel-wrap::after { right:0; background:linear-gradient(270deg,var(--bg),transparent); }
+    .carousel-track { display: flex; gap: 4rem; align-items: center; width: max-content; animation: scroll 30s linear infinite; }
+    @keyframes scroll { to { transform: translateX(-50%); } }
+    .client-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--white-30); white-space: nowrap; }
+
+    /* ── BOT DASHBOARD / STORE ── */
+    .bot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
+    .bot-card { background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 1.8rem; transition: all var(--t); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; min-height: 310px; }
+    .bot-card:hover { border-color: rgba(0, 212, 255, 0.3); transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+    .bot-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; }
+    .bot-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(0, 212, 255, 0.08); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; border: 1px solid rgba(0,212,255,0.15); }
+    
+    .status { padding: 4px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status.online { background: rgba(0, 232, 122, 0.1); color: var(--green); border: 1px solid rgba(0,232,122,0.3); }
+    .status.training { background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+    .status.offline { background: rgba(255, 255, 255, 0.05); color: var(--white-60); border: 1px solid var(--card-border); }
+    
+    .bot-info { margin-bottom: 1.2rem; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .bot-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.2rem; margin-bottom: 0.4rem; }
+    .bot-desc { font-size: 0.85rem; color: var(--white-60); line-height: 1.6; margin-bottom: 1rem; }
+    
+    /* Deployment Platform Badges */
+    .deploy-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); width: max-content; }
+    .deploy-badge.wa { color: #25d166; background: rgba(37, 211, 102, 0.06); border-color: rgba(37, 211, 102, 0.2); }
+    .deploy-badge.tg { color: #0088cc; background: rgba(0, 136, 204, 0.06); border-color: rgba(0, 136, 204, 0.2); }
+    .deploy-badge.web { color: var(--cyan); background: rgba(0, 212, 255, 0.06); border-color: rgba(0, 212, 255, 0.2); }
+
+    .bot-metrics { display: flex; gap: 1.2rem; border-top: 1px solid var(--card-border); padding-top: 1.2rem; font-size: 0.8rem; color: var(--white-60); }
+    .metric strong { color: var(--white); font-family: 'Syne', sans-serif; }
+    
+    .create-card { border: 2px dashed var(--card-border); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; background: transparent; }
+    .create-card:hover { border-color: var(--green); background: rgba(0,232,122,0.02); }
+    .create-card .icon { font-size: 2.5rem; margin-bottom: 0.8rem; background: transparent; border: none; }
+
+    /* ── KNOWLEDGE VAULT ── */
+    .vault-zone { background: rgba(168, 85, 247, 0.02); border: 1.5px solid rgba(168, 85, 247, 0.2); border-radius: var(--radius); padding: 4rem 2rem; text-align: center; transition: all 0.3s; }
+    .vault-zone:hover { border-color: var(--purple); background: rgba(168, 85, 247, 0.06); }
+    .upload-btn { display: inline-block; padding: 14px 28px; border-radius: 10px; background: rgba(168, 85, 247, 0.15); color: #d8b4fe; font-weight: 600; margin-top: 1.5rem; cursor: pointer; border: 1px solid rgba(168, 85, 247, 0.4); font-size: 0.9rem; transition: all 0.3s; }
+    .upload-btn:hover { background: rgba(168, 85, 247, 0.25); transform: translateY(-1px); }
+
+    /* ── DEPLOYMENT CTAs ── */
+    .deploy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+    .deploy-btn { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 1.5rem; border-radius: 16px; font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 700; cursor: pointer; transition: all 0.3s; text-decoration: none; text-align: center; }
+    .btn-wa { background: rgba(37, 211, 102, 0.08); border: 1.5px solid rgba(37,211,102,0.3); color: #25d166; }
+    .btn-wa:hover { background: rgba(37, 211, 102, 0.18); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(37,211,102,0.15); }
+    .btn-tg { background: rgba(0, 136, 204, 0.08); border: 1.5px solid rgba(0,136,204,0.3); color: #0088cc; }
+    .btn-tg:hover { background: rgba(0, 136, 204, 0.18); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,136,204,0.15); }
+
+    /* ── TESTIMONIALS ── */
+    .testi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+    .testi-card { background: var(--card); border: 1px solid var(--card-border); padding: 2.2rem 2rem; border-radius: 20px; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
+    .testi-card::before { content: '“'; position: absolute; top: 10px; right: 25px; font-size: 5rem; font-family: 'Syne', sans-serif; color: rgba(255,255,255,0.03); line-height: 1; }
+    .testi-text { font-size: 0.95rem; color: var(--white-60); line-height: 1.7; font-style: italic; margin-bottom: 2rem; position: relative; z-index: 2; }
+    .testi-author { display: flex; align-items: center; gap: 14px; }
+    .testi-avatar { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; border: 1px solid var(--card-border); shrink: 0; }
+    .t-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
+    .t-role { font-size: 0.78rem; color: var(--white-30); margin-top: 1px; }
+
+    /* ── MODALS ── */
+    .modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(5, 12, 20, 0.94); backdrop-filter: blur(16px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 1.5rem; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: linear-gradient(160deg, #0d1c2e, #081220); border: 1.5px solid var(--card-border); border-radius: 24px; padding: 2.5rem 2rem; max-width: 460px; width: 100%; transform: translateY(20px) scale(0.95); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; max-height: 90vh; overflow-y: auto; }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+    .modal-close { position: absolute; top: 20px; right: 20px; background: var(--card); border: none; color: var(--white-60); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+    .modal-close:hover { color: var(--white); background: rgba(255,255,255,0.1); }
+    
+    .form-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.2rem; }
+    .form-field label { font-size: 0.78rem; font-weight: 700; color: var(--white-60); text-transform: uppercase; letter-spacing: 0.06em; }
+    .form-input { padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1.5px solid var(--card-border); color: var(--white); font-family: 'Manrope', sans-serif; outline: none; transition: border-color 0.3s; font-size: 0.9rem; }
+    .form-input:focus { border-color: var(--green); }
+
+    /* Toast */
+    .toast-wrap { position: fixed; bottom: 2rem; right: 2rem; z-index: 500; display: flex; flex-direction: column; gap: 10px; max-width: 350px; width: calc(100% - 4rem); }
+    .toast { background: #0d1c2e; border: 1px solid var(--green); color: var(--green); padding: 14px 20px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; animation: slideIn 0.3s ease forwards; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    @keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    
+    /* Countdown Ring */
+    .countdown-ring { position: relative; width: 120px; height: 120px; margin: 1.5rem auto; }
+    .countdown-ring svg { transform: rotate(-90deg); }
+    .countdown-ring circle { fill: none; stroke-width: 6; stroke-linecap: round; }
+    .ring-bg { stroke: rgba(0, 232, 122, 0.1); }
+    .ring-prog { stroke: var(--green); stroke-dasharray: 314; transition: stroke-dashoffset 1s linear; }
+    .countdown-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .countdown-text .num { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800; color: var(--green); }
+
+    footer { border-top: 1px solid var(--card-border); padding: 2.5rem 2rem; text-align: center; color: var(--white-30); font-size: 0.85rem; margin-top: 6rem; }
+
+    /* ═══════════════ RESPONSIVE BREAKPOINTS ═══════════════ */
+    @media (max-width: 900px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .section { padding: 4rem 1.5rem; }
+      .hero { padding-top: 8.5rem; }
+    }
+
+    @media (max-width: 480px) {
+      .section { padding: 3.5rem 1rem; }
+      .bot-grid, .testi-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+      .bot-card { padding: 1.4rem; min-height: auto; }
+      .modal { padding: 2rem 1.2rem; }
+      .toast-wrap { bottom: 1rem; right: 1rem; width: calc(100% - 2rem); }
+      .carousel-track { gap: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mesh">
+    <div class="mesh-blob m1"></div>
+    <div class="mesh-blob m2"></div>
+  </div>
+
+  <nav>
+    <a href="#" class="logo">BotForge</a>
+    <ul class="nav-links">
+      <li><a href="#dashboard">Dashboard</a></li>
+      <li><a href="#vault">Knowledge Vault</a></li>
+      <li><a href="#deploy">Deploy</a></li>
+    </ul>
+    <button class="btn-nav" onclick="openModal('createModal')">Create Agent</button>
+  </nav>
+
+  <section class="section hero">
+    <h1>Build Your AI Support Agent<br><span class="highlight">in Minutes.</span></h1>
+    <p>Upload your knowledge base, customize your brand voice, and deploy your AI across messaging protocols instantly. No coding required.</p>
+    <button class="btn-primary" onclick="openModal('createModal')">Start Forging Free</button>
+  </section>
+
+  <div class="carousel-wrap">
+    <div class="carousel-track" id="cTrack">
+      <div class="client-logo">TechFlow Systems</div>
+      <div class="client-logo">Opay Vendors</div>
+      <div class="client-logo">DigitalSolution®</div>
+      <div class="client-logo">EduTech NG</div>
+      <div class="client-logo">HealthLine Network</div>
+      <div class="client-logo">FinServe Group</div>
+      <div class="client-logo">Apex Retail Labs</div>
+      <div class="client-logo">Zeta Payments</div>
+      <div class="client-logo">LogiLink Global</div>
+      <div class="client-logo">Nexa Health Corp</div>
+      <div class="client-logo">Vortex Media</div>
+      <div class="client-logo">Stellar Core</div>
+      <div class="client-logo">SwiftCargo Ltd</div>
+    </div>
+  </div>
+
+  <section class="section" id="dashboard">
+    <h2 class="sec-title">Agent Dashboard</h2>
+    <p class="sec-sub">Manage and monitor your active AI assistants in real-time across channels.</p>
+    
+    <div class="bot-grid">
+      <div class="bot-card">
+        <div class="bot-head">
+          <div class="bot-icon">🛍️</div>
+          <span class="status online">● Online</span>
+        </div>
+        <div class="bot-info">
+          <h3 class="bot-title">SalesBot 9000</h3>
+          <p class="bot-desc">Handles product inquiries, stock checking, and basic order taking processes.</p>
+          <span class="deploy-badge wa">🟢 WhatsApp Platform</span>
+        </div>
+        <div class="bot-metrics">
+          <div class="metric"><strong>1.2k</strong> Chats/wk</div>
+          <div class="metric"><strong>94%</strong> Success</div>
+        </div>
+      </div>
+
+      <div class="bot-card">
+        <div class="bot-head">
+          <div class="bot-icon">📚</div>
+          <span class="status online">● Online</span>
+        </div>
+        <div class="bot-info">
+          <h3 class="bot-title">EduGuide AI</h3>
+          <p class="bot-desc">Guides students through course registration timelines and portal troubleshooting steps.</p>
+          <span class="deploy-badge tg">🔵 Telegram Platform</span>
+        </div>
+        <div class="bot-metrics">
+          <div class="metric"><strong>850</strong> Chats/wk</div>
+          <div class="metric"><strong>91%</strong> Success</div>
+        </div>
+      </div>
+
+      <div class="bot-card">
+        <div class="bot-head">
+          <div class="bot-icon">💳</div>
+          <span class="status online">● Online</span>
+        </div>
+        <div class="bot-info">
+          <h3 class="bot-title">HelpPay Assistant</h3>
+          <p class="bot-desc">Assists merchants with instant invoice confirmation and dispute ticket filing updates.</p>
+          <span class="deploy-badge web">🌐 Web Widget</span>
+        </div>
+        <div class="bot-metrics">
+          <div class="metric"><strong>2.4k</strong> Chats/wk</div>
+          <div class="metric"><strong>96%</strong> Success</div>
+        </div>
+      </div>
+
+      <div class="bot-card">
+        <div class="bot-head">
+          <div class="bot-icon">🏠</div>
+          <span class="status online">● Online</span>
+        </div>
+        <div class="bot-info">
+          <h3 class="bot-title">PropertyScout AI</h3>
+          <p class="bot-desc">Scrapes listing catalogs to answer tenant layout options and rent parameters instantly.</p>
+          <span class="deploy-badge web">🌐 Web Widget</span>
+        </div>
+        <div class="bot-metrics">
+          <div class="metric"><strong>1.1k</strong> Chats/wk</div>
+          <div class="metric"><strong>89%</strong> Success</div>
+        </div>
+      </div>
+
+      <div class="bot-card">
+        <div class="bot-head">
+          <div class="bot-icon">💊</div>
+          <span class="status online">● Online</span>
+        </div>
+        <div class="bot-info">
+          <h3 class="bot-title">MedRemind Bot</h3>
+          <p class="bot-desc">Broadcasts patient prescription schedules and answers clinical working hours safely.</p>
+          <span class="deploy-badge wa">🟢 WhatsApp Platform</span>
+        </div>
+        <div class="bot-metrics">
+          <div class="metric"><strong>3.1k</strong> Chats/wk</div>
+          <div class="metric"><strong>98%</strong> Success</div>
+        </div>
+      </div>
+
+      <div class="bot-card">
+        <div class="bot-head">
+          <div class="bot-icon">📦</div>
+          <span class="status online">● Online</span>
+        </div>
+        <div class="bot-info">
+          <h3 class="bot-title">LogiTrack Agent</h3>
+          <p class="bot-desc">Resolves cross-border parcel location workflows and parses custom tracking coordinates.</p>
+          <span class="deploy-badge tg">🔵 Telegram Platform</span>
+        </div>
+        <div class="bot-metrics">
+          <div class="metric"><strong>920</strong> Chats/wk</div>
+          <div class="metric"><strong>93%</strong> Success</div>
+        </div>
+      </div>
+
+      <div class="bot-card">
+        <div class="bot-head">
+          <div class="bot-icon">📊</div>
+          <span class="status online">● Online</span>
+        </div>
+        <div class="bot-info">
+          <h3 class="bot-title">FinBalance AI</h3>
+          <p class="bot-desc">Handles real-time portfolio tracking and queries internal corporate financial summaries.</p>
+          <span class="deploy-badge web">🌐 Web Widget</span>
+        </div>
+        <div class="bot-metrics">
+          <div class="metric"><strong>1.7k</strong> Chats/wk</div>
+          <div class="metric"><strong>95%</strong> Success</div>
+        </div>
+      </div>
+
+      <div class="bot-card">
+        <div class="bot-head">
+          <div class="bot-icon">⚙️</div>
+          <span class="status training">● Training</span>
+        </div>
+        <div class="bot-info">
+          <h3 class="bot-title">HR Onboarder</h3>
+          <p class="bot-desc">Internal agent for staff onboarding. Currently indexing new compliance documents.</p>
+          <span class="deploy-badge">⚪ Unassigned</span>
+        </div>
+        <div class="bot-metrics">
+          <div class="metric"><strong>0</strong> Chats/wk</div>
+          <div class="metric"><strong>Indexing...</strong></div>
+        </div>
+      </div>
+
+      <div class="bot-card">
+        <div class="bot-head">
+          <div class="bot-icon">🎯</div>
+          <span class="status offline">● Inactive</span>
+        </div>
+        <div class="bot-info">
+          <h3 class="bot-title">PromoScout Bot</h3>
+          <p class="bot-desc">Qualifies out-of-hours seasonal campaign leads and pushes data to CRM boards.</p>
+          <span class="deploy-badge wa">🟢 WhatsApp Ready</span>
+        </div>
+        <div class="bot-metrics">
+          <div class="metric"><strong>0</strong> Chats/wk</div>
+          <div class="metric"><strong>Offline</strong></div>
+        </div>
+      </div>
+
+      <div class="bot-card create-card" onclick="openModal('createModal')">
+        <button class="icon" style="cursor:pointer;">➕</button>
+        <h3 style="font-family:'Syne', sans-serif; font-size:1.15rem; font-weight:700;">Forge New Agent</h3>
+        <p style="font-size: 0.85rem; margin-top: 4px; color: var(--white-60)">Deploy to a new network</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="vault">
+    <h2 class="sec-title">Knowledge Vault</h2>
+    <p class="sec-sub">Upload your business data. The AI reads it and learns instantly.</p>
+    
+    <div class="vault-zone">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">📂</div>
+      <h3 style="font-family:'Syne', sans-serif; font-size: 1.4rem;">Drag & Drop Files Here</h3>
+      <p style="color: var(--white-60); font-size: 0.9rem; margin-top: 8px;">Supports PDF, CSV, TXT, and direct Website URLs.</p>
+      <input type="file" id="fileUpload" style="display:none;" multiple onchange="handleUpload()">
+      <button class="upload-btn" onclick="document.getElementById('fileUpload').click()">Browse Files</button>
+    </div>
+  </section>
+
+  <section class="section" id="deploy">
+    <h2 class="sec-title">1-Click Deployment</h2>
+    <p class="sec-sub">Connect your AI to the platforms your customers already use.</p>
+    
+    <div class="deploy-grid">
+      <a href="#" class="deploy-btn btn-wa" onclick="triggerWADeploy(event)">
+        <span>💬</span> Deploy to WhatsApp
+      </a>
+      <a href="#" class="deploy-btn btn-tg" onclick="triggerWADeploy(event)">
+        <span>✈️</span> Deploy to Telegram
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="sec-title">Trusted by Innovators</h2>
+    <p class="sec-sub">See how businesses are eliminating operational latency.</p>
+    
+    <div class="testi-grid">
+      <div class="testi-card">
+        <p class="testi-text">"We uploaded our 50-page policy PDF, and within 10 minutes, the bot was answering complex customer queries perfectly. It's like magic."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="color: var(--cyan);">JM</div>
+          <div>
+            <div class="t-name">James M.</div>
+            <div class="t-role">E-commerce Founder</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="testi-card">
+        <p class="testi-text">"BotForge completely transformed our appointment booking process. Customers chat with our agent on WhatsApp, and it schedules everything perfectly."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="color: var(--green);">SO</div>
+          <div>
+            <div class="t-name">Sarah O.</div>
+            <div class="t-role">Clinic Manager, Kubwa</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <p class="testi-text">"Managing student records and class schedules across faculties used to take hours. The automated Telegram fallback layer here cut manual tickets by 70%."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="color: var(--purple);">AU</div>
+          <div>
+            <div class="t-name">Dr. Aminu U.</div>
+            <div class="t-role">Dean of Operations, EduNG</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <p class="testi-text">"Our conversion tracking and payment resolution timelines needed an active solution. Building this on top of our custom JSON parameters took minutes."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="color: #fbbf24;">EK</div>
+          <div>
+            <div class="t-name">Ebele K.</div>
+            <div class="t-role">FinServe Group VP</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <p class="testi-text">"Integrating BotForge with our Shopify storefront automated all tracking confirmations immediately. Support handles double the conversation volume now."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="color: var(--green);">LT</div>
+          <div>
+            <div class="t-name">Linda T.</div>
+            <div class="t-role">Retail Platform Owner</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <p class="testi-text">"The speed at which this environment indexes specific database business rules is unmatched. Our custom Telegram deployment runs flawlessly."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="color: var(--cyan);">CO</div>
+          <div>
+            <div class="t-name">Chidi O.</div>
+            <div class="t-role">Product Architect</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <p class="testi-text">"Student onboarding protocols used to bottleneck our admin team each semester. The custom web widget handles routine queries without any downtime."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="color: var(--purple);">AE</div>
+          <div>
+            <div class="t-name">Amara E.</div>
+            <div class="t-role">EdTech Project Lead</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <p class="testi-text">"Fleet status updates and partner courier dispatches are now handled seamlessly by the WhatsApp agent layer. Absolute operational breakthrough."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="color: #fbbf24;">MK</div>
+          <div>
+            <div class="t-name">Marcus K.</div>
+            <div class="t-role">Logistics Dispatch Lead</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 BotForge AI Platform. All rights reserved.</p>
+  </footer>
+
+  <div class="modal-overlay" id="createModal" onclick="closeModal(event, 'createModal')">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal(null, 'createModal')">✕</button>
+      <h2 style="font-family:'Syne', sans-serif; margin-bottom: 5px; font-weight:800;">Forge Your Bot</h2>
+      <p style="color:var(--white-60); font-size: 0.85rem; margin-bottom: 1.5rem;">Give your AI an identity and purpose.</p>
+      
+      <div class="form-field">
+        <label>Bot Name</label>
+        <input type="text" id="botName" class="form-input" placeholder="e.g., SupportBot 9000">
+      </div>
+      <div class="form-field">
+        <label>Primary Role</label>
+        <select class="form-input" id="botRole">
+          <option>Customer Support & FAQ</option>
+          <option>Lead Generation</option>
+          <option>Conversational Commerce</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Brand Tone</label>
+        <select class="form-input" id="botTone">
+          <option>Professional & Direct</option>
+          <option>Friendly & Playful</option>
+          <option>Empathetic & Patient</option>
+        </select>
+      </div>
+      
+      <button class="btn-primary" style="width: 100%; margin-top: 1rem;" onclick="submitBotCreation()">Initialize Agent</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="waModal">
+    <div class="modal" style="text-align: center;">
+      <h2 style="font-family:'Syne', sans-serif; font-size: 1.8rem; margin-bottom: 5px; font-weight:800;">Deploying...</h2>
+      <p style="color:var(--white-60); font-size: 0.9rem;" id="waSubText">Generating secure API keys for your agent.</p>
+      
+      <div class="countdown-ring">
+        <svg width="120" height="120">
+          <circle cx="60" cy="60" r="50" class="ring-bg" />
+          <circle cx="60" cy="60" r="50" class="ring-prog" id="cdCircle" />
+        </svg>
+        <div class="countdown-text">
+          <span class="num" id="cdNum">5</span>
+          <span style="font-size: 0.6rem; letter-spacing: 2px; color: var(--white-30); font-weight:700;">SECONDS</span>
+        </div>
+      </div>
+
+      <div style="background: rgba(37, 211, 102, 0.05); border: 1px solid rgba(37, 211, 102, 0.2); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; text-align: left;">
+        <p style="font-size: 0.8rem; line-height: 1.6; color: var(--white-60);">
+          ✅ Agent Profile Generated<br>
+          ✅ Knowledge Base Linked<br>
+          ⏳ Redirecting to gateway to finalize integration...
+        </p>
+      </div>
+      
+      <button class="btn-nav" style="width: 100%; border-color: rgba(37, 211, 102, 0.4); color: #25d166;" onclick="forceWARedirect()">Open Gateway Interface Now</button>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toasts"></div>
+
+  <script>
+    // Duplicate carousel items for seamless infinite scroll loop
+    const track = document.getElementById('cTrack');
+    track.innerHTML += track.innerHTML;
+
+    // Modal Display Pipeline
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal(e, id) {
+      if (e && e.target !== document.getElementById(id)) return;
+      document.getElementById(id).classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    // Feedback System Toast Notifications
+    function showToast(msg) {
+      const wrap = document.getElementById('toasts');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = '✨ ' + msg;
+      wrap.appendChild(toast);
+      setTimeout(() => { toast.remove(); }, 3000);
+    }
+
+    // File Upload Context Handler
+    function handleUpload() {
+      const input = document.getElementById('fileUpload');
+      if (input.files.length > 0) {
+        showToast(`${input.files.length} file(s) vectorized to Knowledge Vault.`);
+        input.value = '';
+      }
+    }
+
+    // Agent Creation Validation Lifecycle
+    let cdInterval;
+    let botData = {};
+
+    function submitBotCreation() {
+      const name = document.getElementById('botName').value.trim();
+      const role = document.getElementById('botRole').value;
+      const tone = document.getElementById('botTone').value;
+      
+      if (!name) {
+        alert("Please provide a Bot Name.");
+        return;
+      }
+
+      botData = { name, role, tone };
+      
+      document.getElementById('createModal').classList.remove('open');
+      openModal('waModal');
+      
+      let timeLeft = 5;
+      const circle = document.getElementById('cdCircle');
+      const numDisplay = document.getElementById('cdNum');
+      
+      circle.style.strokeDashoffset = 0;
+      numDisplay.textContent = timeLeft;
+
+      if(cdInterval) clearInterval(cdInterval);
+      
+      cdInterval = setInterval(() => {
+        timeLeft--;
+        numDisplay.textContent = timeLeft;
+        circle.style.strokeDashoffset = 314 - (314 * (timeLeft / 5));
+        
+        if (timeLeft <= 0) {
+          clearInterval(cdInterval);
+          forceWARedirect();
+        }
+      }, 1000);
+    }
+
+    function triggerWADeploy(e) {
+      e.preventDefault();
+      botData = { name: "Existing Agent Layer", role: "Direct Update", tone: "Adaptive" };
+      openModal('waModal');
+      
+      let timeLeft = 3;
+      const circle = document.getElementById('cdCircle');
+      const numDisplay = document.getElementById('cdNum');
+      circle.style.strokeDashoffset = 0;
+      numDisplay.textContent = timeLeft;
+
+      if(cdInterval) clearInterval(cdInterval);
+      cdInterval = setInterval(() => {
+        timeLeft--;
+        numDisplay.textContent = timeLeft;
+        circle.style.strokeDashoffset = 314 - (314 * (timeLeft / 3));
+        if (timeLeft <= 0) {
+          clearInterval(cdInterval);
+          forceWARedirect();
+        }
+      }, 1000);
+    }
+
+    function forceWARedirect() {
+      clearInterval(cdInterval);
+      closeModal(null, 'waModal');
+      
+      const adminPhone = "2348000000000";
+      const msg = `🤖 *BotForge Deployment Request*\n\n*Agent Name:* ${botData.name}\n*Role:* ${botData.role}\n*Tone:* ${botData.tone}\n\nPlease sync my platform tokens layout parameters.`;
+      
+      window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+      showToast("Deployment initialization log passed to gateway protocol.");
+    }
+  </script>
+</body>
+</html>
